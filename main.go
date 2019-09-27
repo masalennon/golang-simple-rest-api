@@ -1,8 +1,8 @@
 package main
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 	"encoding/json"
 
 )
@@ -13,72 +13,64 @@ func main() {
     // mux.HandleFunc("/events", getAllEvents)
     // mux.Handle("/events/", http.StripPrefix("/events/", http.HandlerFunc(getOneEvent)))
 
-	http.HandleFunc("/trust", handleTrustRequest) //第一引数のURLへのリクエストが到着すると、第二引数に指定されているハンドラ関数にリダイレクトされる。全てのハンドラ関数が第一引数にResponseWriterをとり、第二引数にRequestへのポインタを取るのでハンドラ関数に改めて引数を渡す必要はない
+	http.HandleFunc("/articles", handleArticleRequest)
+	http.Handle("/articles/", http.StripPrefix("/articles/", http.HandlerFunc(getArticle)))//アクセスされたURLからarticles部分を削除してハンドリングする。つまり、articles/13の場合、13とgetArticleメソッドを紐付ける
+	//第一引数のURLへのリクエストが到着すると、第二引数に指定されているハンドラ関数にリダイレクトされる。全てのハンドラ関数が第一引数にResponseWriterをとり、第二引数にRequestへのポインタを取るのでハンドラ関数に改めて引数を渡す必要はない
 	//ハンドラ関数とは第一引数にResponseWriterをとり、第二引数にRequestへのポインタを取るGoの関数に過ぎない
 	//HTTPリクエスト発生時に呼び出される具体的な処理が書かれています。
-	http.HandleFunc("/belief", handleBeliefRequest)
-    http.ListenAndServe(":8080", nil) //なぜnilでいい？
+    http.ListenAndServe(":8081", nil) //なぜnilでいい？
 }
 
-func handleTrustRequest(w http.ResponseWriter, r *http.Request) {
+func handleArticleRequest(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "GET":
-		handleTrustGet(w, r)
-	case "POST":
-		
-	}
+	case http.MethodGet:
+		handleArticlesGet(w, r)
+	default:
+		http.Error(w, r.Method + " method not allowed", http.StatusMethodNotAllowed)
+		// w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		// w.Header().Set("X-Content-Type-Options", "nosniff")
+		// w.WriteHeader(http.StatusMethodNotAllowed)
+    }
 }
 
-func handleBeliefRequest(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		handleBeliefGet(w, r)
-	case "POST":
-		
-	}
-}
-
-type trust struct {
+type article struct {
 	ID string `json:"ID"`
 	Title string `json:"Title"`
 	Description string `json:"Description"`
 }
 
-type belief struct {
-	ID string `json:"ID"`
-	Title string `json:"Title"`
-	Description string `json:"Description"`
-}
 
-type allTrusts []trust
+type allArticles []article
 
-type allBeliefs []belief
-
-var trusts = allTrusts{
-	{
-		ID:          "11",
-		Title:       "trust",
-		Description: "Come join us for a chance to learn how golang works and get to eventually try it out",
-	},
-}
-
-var beliefs = allBeliefs{
+var articles = allArticles{
 	{
 		ID:          "12",
-		Title:       "belief",
-		Description: "Come join us for a chance to learn how golang works and get to eventually try it out",
+		Title:       "Introduction to golang",
+		Description: "Go言語の基本",
+	},
+	{
+		ID:          "13",
+		Title:       "Introduction to Algorithm",
+		Description: "アルゴリズムの基本",
 	},
 }
 
-func handleTrustGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GET")
-	fmt.Println(r.URL.Path)
-	json.NewEncoder(w).Encode(trusts) //JSONにエンコードしたtrustsをレスポンスボディ（w）に書き込む
+func handleArticlesGet(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(articles)//JSONにエンコードしたtrustsをレスポンスボディ（w）に書き込む
 }
 
-func handleBeliefGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GET")
-	json.NewEncoder(w).Encode(beliefs)
+func getArticle(w http.ResponseWriter, r *http.Request) {
+	eventID := r.URL.Path //URIの末尾を返す。articles/の後に文字列を追加して確認済み。その時も13だった。
+	fmt.Printf("%+v\n", r)
+	fmt.Println(eventID)
+	for _, article := range articles {
+		if article.ID == eventID {
+			json.NewEncoder(w).Encode(article)
+			break
+		}
+	}
+	
+
 }
 
 func handlePost(w http.ResponseWriter, r *http.Request) {
