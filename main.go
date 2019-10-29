@@ -9,9 +9,9 @@ import (
 )
 
 type article struct {
-	ID          string `json:"ID"`
-	Title       string `json:"Title"`
-	Description string `json:"Description"`
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
 type allArticles []article
@@ -33,21 +33,11 @@ var articles = allArticles{
 		Description: "プログラミングの基本",
 	},
 }
-func main() {
-	// mux := http.NewServeMux() //デフォルトのマルチプレクサを生成するコード、リクエストをハンドラにリダイレクトする。
-	// mux.HandleFunc("/", homeLink)
-	// mux.HandleFunc("/events", getAllEvents)
-	// mux.Handle("/events/", http.StripPrefix("/events/", http.HandlerFunc(getOneEvent)))
 
-	http.HandleFunc("/articles", handleAllArticlesRequest)//HandldFuncもHandleも役割は同じ。両方URLにハンドラ関数を登録する。
-	http.Handle("/articles/", http.StripPrefix("/articles/", http.HandlerFunc(handleSingleArticleRequest))) //アクセスされたURLからarticles部分を削除してハンドリングする。つまり、articles/13の場合、13とhandleSingleArticleRequestメソッドを紐付ける
-	//第一引数のURLへのリクエストが到着すると、第二引数に指定されているハンドラ関数にリダイレクトされる。全てのハンドラ関数が第一引数にResponseWriterをとり、第二引数にRequestへのポインタを取るのでハンドラ関数に改めて引数を渡す必要はない
-	//ハンドラ関数とは第一引数にResponseWriterをとり、第二引数にRequestへのポインタを取るGoの関数に過ぎない
-	//今まで気づかなかったが、HandlerFuncはよく見たら型なので、↑でキャストしているのだな。
-	//「func (w http.ResponseWriter, r *http.Request)」関数型はHandlerFunc型にキャストすればHandlerとコンパチになる。
-	//http.Handle("/articles/test/", http.StripPrefix("/articles/", http.HandlerFunc(getArticle))) このように書くと、/test/xxx というURLとgetArticleが結び付けられ、getArticle内のr.URL.PathのURLはtest/xxxになる
-	//HTTPリクエスト発生時に呼び出される具体的な処理が書かれています。
-	http.ListenAndServe(":8081", nil) //なぜnilでいい？
+func main() {
+	http.HandleFunc("/articles", handleAllArticlesRequest)
+	http.Handle("/articles/", http.StripPrefix("/articles/", http.HandlerFunc(handleSingleArticleRequest)))
+	http.ListenAndServe(":8081", nil)
 }
 
 func handleAllArticlesRequest(w http.ResponseWriter, r *http.Request) {
@@ -58,9 +48,6 @@ func handleAllArticlesRequest(w http.ResponseWriter, r *http.Request) {
 		addArticle(w, r)
 	default:
 		http.Error(w, r.Method+" method not allowed", http.StatusMethodNotAllowed)
-		// w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		// w.Header().Set("X-Content-Type-Options", "nosniff")
-		// w.WriteHeader(http.StatusMethodNotAllowed)
 		t := time.NewTicker(100)
 		for range t.C {
 			t.Stop()
@@ -112,8 +99,6 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 func updateArticle(w http.ResponseWriter, r *http.Request) {
 	eventID := r.URL.Path
 	var updatedArticle article
-	id := r.URL.Query().Get("id")
-
 
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {

@@ -14,16 +14,14 @@ func TestGetArticles(t *testing.T) {
 	}
 	rr := httptest.NewRecorder() //レスポンスの情報を格納する
 	handler := http.HandlerFunc(getArticles)
-	fmt.Println("first rr: ", rr)
 	handler.ServeHTTP(rr, req) //ここで↑のgetArticlesを呼んでいる。rrに返ってきた内容が入る。出力して確認済み。
-	fmt.Println("second rr: ", rr)
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
 
 	// Check the response body is what we expect.
-	expected := `[{"ID":"12","Title":"Introduction to golang","Description":"Go言語の基本"},{"ID":"13","Title":"Introduction to Algorithm","Description":"アルゴリズムの基本"}]`
+	expected := `[{"id":"12","title":"Introduction to golang","description":"Go言語の基本"},{"id":"13","title":"Introduction to Algorithm","description":"アルゴリズムの基本"},{"id":"14","title":"Introduction to Programming","description":"プログラミングの基本"}]`
 	if rr.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)
