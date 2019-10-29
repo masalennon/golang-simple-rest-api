@@ -1,0 +1,1 @@
+この実装の解説はhttps://qiita.com/masalennon/items/7133067dda35dedc47edにあります。
